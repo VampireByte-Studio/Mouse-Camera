@@ -24,6 +24,10 @@ detector = vision.HandLandmarker.create_from_options(options)
 click_range = 0
 min_click_range = click_range-10
 max_click_range = click_range+10
+# pinky+thumb rightclick
+right_click_range = 10
+min_click_range_rc = right_click_range-10
+max_click_range_rc = right_click_range+10
 #draw landmarks
 def draw_landmarks(frame, hand_landmarks):
     h, w, _ = frame.shape
@@ -66,18 +70,26 @@ while True:
         draw_landmarks(frame, hand)
         index_tip = hand[8]
         middle_tip = hand[12]
+        thumb_tip = hand[4]
+        pinky_tip = hand[20]
         #click detect
         h, w, _ = frame.shape
-        ix = int(index_tip.x * w)
-        mx = int(middle_tip.x * w)
-        x_diff = mx - ix
+        iy = int(index_tip.y * h)
+        my = int(middle_tip.y  * h)
+        py = int(pinky_tip.y * h)
+        tx = int(thumb_tip.y * h)
 
-        if min_click_range <= x_diff <= max_click_range:
+        y_diff_rc = tx - py
+        y_diff_lc = my - iy
 
-                pyautogui.click()
+        if min_click_range <= y_diff_lc <= max_click_range:
+
+                pyautogui.leftClick()
                #debug print for click
                 print("left click detected")
-
+        elif min_click_range_rc <= y_diff_rc <= max_click_range_rc:
+            pyautogui.rightClick()
+            print("right click detected")
 
         screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
         pyautogui.moveTo(screen_x, screen_y)
