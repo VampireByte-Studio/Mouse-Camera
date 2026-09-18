@@ -39,6 +39,8 @@ def draw_landmarks(frame, hand_landmarks):
             color = (0, 255, 0)   #green - index tip
         elif i == 12:
             color = (255, 0, 0)   #blue - middle tip
+        elif i == 4 or i == 20:
+            color = (0, 255, 255) #yellow - thumb and pinky tip
         else:
             color = (0, 0, 255)   #red - other landmarks
 
@@ -74,22 +76,32 @@ while True:
         pinky_tip = hand[20]
         #click detect
         h, w, _ = frame.shape
+        # finger position y
         iy = int(index_tip.y * h)
         my = int(middle_tip.y  * h)
         py = int(pinky_tip.y * h)
-        tx = int(thumb_tip.y * h)
-
-        y_diff_rc = tx - py
+        ty = int(thumb_tip.y * h)
+        y_diff_rc = ty - py
         y_diff_lc = my - iy
 
-        if min_click_range <= y_diff_lc <= max_click_range:
+        # finger position x
+        ix = int(index_tip.x * w)
+        mx = int(middle_tip.x * w)
+        px = int(pinky_tip.x * w)
+        tx = int(thumb_tip.x * w)
+        x_diff_rc = tx - px
+        x_diff_lc = mx - ix
 
+        if min_click_range <= y_diff_lc <= max_click_range:
+            if min_click_range <= x_diff_lc <= max_click_range:
                 pyautogui.leftClick()
-               #debug print for click
-                print("left click detected")
+               #debug print for left click
+                # print("left click detected")
         elif min_click_range_rc <= y_diff_rc <= max_click_range_rc:
-            pyautogui.rightClick()
-            print("right click detected")
+            if min_click_range_rc <= x_diff_rc <= max_click_range_rc:
+                pyautogui.rightClick()
+                # debug print for right click
+                # print("right click detected")
 
         screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
         pyautogui.moveTo(screen_x, screen_y)
