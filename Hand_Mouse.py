@@ -12,7 +12,6 @@ if not cap.isOpened():
     raise RuntimeError("No capturing devices found")
 
 # hands
-
 base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
 options = vision.HandLandmarkerOptions(
     base_options=base_options,
@@ -20,6 +19,11 @@ options = vision.HandLandmarkerOptions(
     num_hands=1,
 )
 detector = vision.HandLandmarker.create_from_options(options)
+# smoothening values
+previous_x = 0
+previous_y = 0
+movement_threshold = 0.5
+
 #middle finger
 click_range = 0
 min_click_range = click_range-10
@@ -69,7 +73,7 @@ while True:
 
     if result.hand_landmarks:
         hand = result.hand_landmarks[0]
-        draw_landmarks(frame, hand)
+        # draw_landmarks(frame, hand) # mark all landmarks
         index_tip = hand[8]
         middle_tip = hand[12]
         thumb_tip = hand[4]
@@ -104,15 +108,13 @@ while True:
                 # print("right click detected")
 
         screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
-        pyautogui.moveTo(screen_x, screen_y)
+
+        pyautogui.moveTo(screen_x, screen_y) #ADD SMOOTHENING VIA MOVEMENT THRESHOLD
         #debug prints
         # print(screen_x, screen_y)
         # print("Hand detected:", result.hand_landmarks[0][8])
 
-    cv2.imshow("Webcam", frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+   # cv2.imshow("Webcam", frame) # turns camera tab on
 
 cap.release()
 cv2.destroyAllWindows()
