@@ -7,8 +7,10 @@ import pyautogui
 
 #ASL related values
 ASL = False
-keyboard_cd = 1
-lastActionTime = 0
+click_cd = 0.4
+mode_cd = 2
+lastClickTime = 0
+lastModeTime = 0
 screen_w, screen_h = pyautogui.size()
 # webcam
 cap = cv2.VideoCapture(0)
@@ -103,18 +105,19 @@ while True:
 
         # mouse mode
         if not ASL:
-            if contact(index_tip, middle_tip, click_range, w, h, 10):
+            now = time.time()
+            if now - lastClickTime > click_cd and contact(index_tip, middle_tip, click_range, w, h, 10):
                 pyautogui.leftClick()
-                lastActionTime = now
+                lastClickTime = now
                 print("Left click detected")
-            elif contact(thumb_tip, pinky_tip, right_click_range, w, h, 10):
+            elif now - lastClickTime > click_cd and contact(thumb_tip, pinky_tip, right_click_range, w, h, 10):
                 pyautogui.rightClick()
-                lastActionTime = now
+                lastClickTime = now
                 print("Right click detected")
-            elif now - lastActionTime > keyboard_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+            elif now - lastModeTime > mode_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
                 ASL = True
                 print("KEYBOARD ON")
-                lastActionTime = now
+                lastModeTime = now
             elif contact(thumb_tip, middle_tip, click_range, w, h, 10):
                 break
 
@@ -126,10 +129,10 @@ while True:
 
         if ASL:
             now = time.time()
-            if now - lastActionTime > keyboard_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+            if now - lastModeTime > mode_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
                 ASL = False
                 print("KEYBOARD OFF")
-                lastActionTime = now
+                lastModeTime = now
 
 
     cv2.imshow("Webcam", frame) # turns camera tab on
