@@ -7,10 +7,13 @@ import pyautogui
 
 #ASL related values
 ASL = False
+#time related values
 click_cd = 0.4
+type_cd = 0.2
 mode_cd = 2
 lastClickTime = 0
 lastModeTime = 0
+#general
 screen_w, screen_h = pyautogui.size()
 # webcam
 cap = cv2.VideoCapture(0)
@@ -75,6 +78,21 @@ def contact(tipA, tipB, center_range, w, h, tolerance):
     max_range = center_range + tolerance
     return min_range <= x_diff <= max_range and min_range <= y_diff <= max_range
 
+def contact_y(tipA, tipB, center_range, h, tolerance):
+    ay = int(tipA.y * h)
+    by = int(tipB.y * h)
+    y_diff = by - ay
+    min_range = center_range - tolerance
+    max_range = center_range + tolerance
+    return min_range <= y_diff <= max_range
+
+def contact_x(tipA, tipB, center_range, w, tolerance):
+    ax = int(tipA.x * w)
+    bx = int(tipB.x * w)
+    x_diff = bx - ax
+    min_range = center_range - tolerance
+    max_range = center_range + tolerance
+    return min_range <= x_diff <= max_range
 
 
 
@@ -94,11 +112,21 @@ while True:
     if result.hand_landmarks:
         hand = result.hand_landmarks[0]
         draw_landmarks(frame, hand)
+        #joint maps
+
+        #finger tip alternatives
         index_tip = hand[8]
         middle_tip = hand[12]
         ring_tip = hand[16]
         thumb_tip = hand[4]
         pinky_tip = hand[20]
+
+        #joint general mappings
+        h4 = hand[4]
+        h8 = hand [8]
+        h9 = hand[9]
+        h16 = hand [16]
+
 
         h, w, _ = frame.shape
         # ... your y_diff / x_diff calcs if still needed ...
@@ -127,12 +155,16 @@ while True:
             pyautogui.moveTo(smooth_x, smooth_y)
             prev_x, prev_y = smooth_x, smooth_y
 
+
+        #ASL KEYBOARD
         if ASL:
             now = time.time()
             if now - lastModeTime > mode_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
                 ASL = False
                 print("KEYBOARD OFF")
                 lastModeTime = now
+            elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10):
+                print("B")
 
 
     cv2.imshow("Webcam", frame) # turns camera tab on
@@ -142,3 +174,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
