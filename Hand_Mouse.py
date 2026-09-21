@@ -94,7 +94,17 @@ def contact_x(tipA, tipB, center_range, w, tolerance):
     max_range = center_range + tolerance
     return min_range <= x_diff <= max_range
 
+def distant_y(tipA, tipB, h, d):
+    ay = int(tipA.y * h)
+    by = int(tipB.y * h)
+    y_diff = by - ay
+    return y_diff > d
 
+def distant_x(tipA, tipB, w, d):
+    ax = int(tipA.x * w)
+    bx = int(tipB.x * w)
+    x_diff = bx - ax
+    return x_diff > d
 
 #main loop
 
@@ -122,10 +132,26 @@ while True:
         pinky_tip = hand[20]
 
         #joint general mappings
+        h1 = hand[1]
+        h2 = hand[2]
+        h3 = hand[3]
         h4 = hand[4]
-        h8 = hand [8]
+        h5 = hand[5]
+        h6 = hand[6]
+        h7 = hand[7]
+        h8 = hand[8]
         h9 = hand[9]
-        h16 = hand [16]
+        h10 = hand[10]
+        h11 = hand[11]
+        h12 = hand[12]
+        h13 = hand[13]
+        h14 = hand[14]
+        h15 = hand[15]
+        h16 = hand[16]
+        h17 = hand[17]
+        h18 = hand[18]
+        h19 = hand[19]
+        h20 = hand[20]
 
 
         h, w, _ = frame.shape
@@ -163,7 +189,7 @@ while True:
                 ASL = False
                 print("KEYBOARD OFF")
                 lastModeTime = now
-            elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10):
+            elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10) and distant_y(h12, h9, h, 80):
                 print("B")
 
 
