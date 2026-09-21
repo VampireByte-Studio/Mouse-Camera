@@ -42,18 +42,12 @@ pip install opencv-python mediapipe pyautogui
 
 ## 🚀 Getting Started
 1. Clone the repository
-git clone https://github.com/VampireByte-Studio/Mouse-Camera-Project.git
+git clone https://github.com/VampireByte-Studio/Mouse-Camera.git
 
-2. Install dependencies
-pip install -r requirements.txt
-
-
-Or install them manually:
-
+2.
 pip install opencv-python mediapipe pyautogui
 
 3. Run the project
-python main.py
 
 
 Your webcam should open and begin tracking your hand.
@@ -84,7 +78,7 @@ The program then uses those landmarks to determine the user's hand position and 
 
 The pointer fingertip can be used as the mouse cursor position:
 
-Pointer Finger
+Index Finger
      ↓
 Hand Landmark
      ↓
@@ -125,6 +119,9 @@ Background complexity
 
 Good lighting and a clear view of your hand generally produce better tracking.
 
+
+more updates coming soon such as a ASL Keyboard
+
 ## 🔒 Privacy
 
 This project processes the webcam feed locally for hand tracking. It does not need to upload your camera footage to an external server.
@@ -140,20 +137,4 @@ You may use, copy, modify, and distribute this code for projects that are not in
 Commercial use is prohibited without prior written permission from the copyright holder.
 
 If you would like to use this project commercially, please contact the copyright holder for permission.
-
-## 🤝 Contributing
-
-Suggestions, bug fixes, and improvements are welcome.
-
-If you would like to contribute:
-
-Fork the repository
-
-Create a new branch
-
-Make your changes
-
-Test your changes
-
-Submit a pull request
 
