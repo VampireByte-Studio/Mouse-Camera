@@ -3,9 +3,12 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import time
-import sys
 import pyautogui
 
+#ASL related values
+ASL = False
+keyboard_cd = 1
+lastActionTime = 0
 screen_w, screen_h = pyautogui.size()
 # webcam
 cap = cv2.VideoCapture(0)
@@ -88,47 +91,46 @@ while True:
 
     if result.hand_landmarks:
         hand = result.hand_landmarks[0]
-        draw_landmarks(frame, hand) # mark all landmarks
+        draw_landmarks(frame, hand)
         index_tip = hand[8]
         middle_tip = hand[12]
         ring_tip = hand[16]
         thumb_tip = hand[4]
         pinky_tip = hand[20]
-        #click detect
+
         h, w, _ = frame.shape
-        # finger position y
-        iy = int(index_tip.y * h)
-        my = int(middle_tip.y  * h)
-        py = int(pinky_tip.y * h)
-        ty = int(thumb_tip.y * h)
-        y_diff_rc = ty - py
-        y_diff_lc = my - iy
+        # ... your y_diff / x_diff calcs if still needed ...
 
-        # finger position x
-        ix = int(index_tip.x * w)
-        mx = int(middle_tip.x * w)
-        px = int(pinky_tip.x * w)
-        tx = int(thumb_tip.x * w)
-        x_diff_rc = tx - px
-        x_diff_lc = mx - ix
+        # mouse mode
+        if not ASL:
+            if contact(index_tip, middle_tip, click_range, w, h, 10):
+                pyautogui.leftClick()
+                lastActionTime = now
+                print("Left click detected")
+            elif contact(thumb_tip, pinky_tip, right_click_range, w, h, 10):
+                pyautogui.rightClick()
+                lastActionTime = now
+                print("Right click detected")
+            elif now - lastActionTime > keyboard_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+                ASL = True
+                print("KEYBOARD ON")
+                lastActionTime = now
+            elif contact(thumb_tip, middle_tip, click_range, w, h, 10):
+                break
 
-        if contact(index_tip, middle_tip, click_range, w, h, 10):
-            pyautogui.leftClick()
-            print("Left click detected")
-        elif contact(thumb_tip, pinky_tip, right_click_range, w, h, 10):
-            pyautogui.rightClick()
-            print("Right click detected")
-        elif contact(thumb_tip, middle_tip, click_range, w, h, 10):
-           break
-        screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
-        smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
-        smooth_y = prev_y + (screen_y - prev_y) * (1 - smoothing)
+            screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
+            smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
+            smooth_y = prev_y + (screen_y - prev_y) * (1 - smoothing)
+            pyautogui.moveTo(smooth_x, smooth_y)
+            prev_x, prev_y = smooth_x, smooth_y
 
-        pyautogui.moveTo(smooth_x, smooth_y)
-        prev_x, prev_y = smooth_x, smooth_y
-        #debug prints
-        # print(screen_x, screen_y)
-        # print("Hand detected:", result.hand_landmarks[0][8])
+        if ASL:
+            now = time.time()
+            if now - lastActionTime > keyboard_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+                ASL = False
+                print("KEYBOARD OFF")
+                lastActionTime = now
+
 
     cv2.imshow("Webcam", frame) # turns camera tab on
 
