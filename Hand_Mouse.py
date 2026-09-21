@@ -105,12 +105,13 @@ while True:
                 pyautogui.rightClick()
                 # debug print for right click
                 # print("right click detected")
+
         screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
         smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
         smooth_y = prev_y + (screen_y - prev_y) * (1 - smoothing)
 
         pyautogui.moveTo(smooth_x, smooth_y)
-        prev_x, prev_y = smooth_x, smooth_y #ADD SMOOTHENING VIA MOVEMENT THRESHOLD
+        prev_x, prev_y = smooth_x, smooth_y 
         #debug prints
         # print(screen_x, screen_y)
         # print("Hand detected:", result.hand_landmarks[0][8])
