@@ -189,8 +189,14 @@ while True:
                 ASL = False
                 print("KEYBOARD OFF")
                 lastModeTime = now
+            elif now - lastModeTime > type_cd and contact(h16, h13, click_range, w, h, 30) and contact(h9,h12, click_range, w, h, 30) and contact(h8, h5, click_range, w, h, 30) and contact_y(h4,h6, w, h, 20):
+                print ("A")
+                #NOT WORKING
             elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10) and distant_y(h12, h9, h, 80):
                 print("B")
+            elif now - lastModeTime > type_cd and contact(h8, h12, click_range, w, h, 10) and contact_y(h4, h8, click_range, h, 10) and distant_x(h4, h8, w, 40):
+                print("C")
+                #NOT WORKING
 
 
     cv2.imshow("Webcam", frame) # turns camera tab on
