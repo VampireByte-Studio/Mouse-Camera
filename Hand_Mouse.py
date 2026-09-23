@@ -172,8 +172,8 @@ while True:
                 ASL = True
                 print("KEYBOARD ON")
                 lastModeTime = now
-            elif contact(thumb_tip, middle_tip, click_range, w, h, 10):
-                break
+            #elif contact(thumb_tip, middle_tip, click_range, w, h, 10):
+                #break
 
             screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
             smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
@@ -192,9 +192,9 @@ while True:
             elif now - lastModeTime > type_cd and contact(h16, h13, click_range, w, h, 30) and contact(h9,h12, click_range, w, h, 30) and contact(h8, h5, click_range, w, h, 30) and contact_y(h4,h6, w, h, 20):
                 print ("A")
                 #NOT WORKING
-            elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10) and distant_y(h12, h9, h, 80):
+            elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10) and distant_y(h12, h9, h, 60):
                 print("B")
-            elif now - lastModeTime > type_cd and contact(h8, h12, click_range, w, h, 10) and contact_y(h4, h8, click_range, h, 10) and distant_x(h4, h8, w, 40):
+            elif now - lastModeTime > type_cd and contact(h8, h12, click_range, w, h, 10) and contact_y(h4, h8, click_range, h, 10) and distant_x(h4, h8, w, 20):
                 print("C")
                 #NOT WORKING
 
