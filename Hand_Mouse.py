@@ -40,8 +40,17 @@ kf.transitionMatrix = np.array([[1, 0, 1, 0],
                                 [0, 0, 0, 1]], np.float32)
 kf.measurementMatrix = np.array([[1, 0, 0, 0],
                                  [0, 1, 0, 0]], np.float32)
-kf.processNoisecov = np.eye(4, dtype=np.float32)
-kf.measurementNoiseCov = np.eye(4, dtype=np.float32)
+kf.processNoiseCov = np.eye(4, dtype=np.float32)
+kf.measurementNoiseCov = np.eye(2, dtype=np.float32)
+kf.errorCovPost        = np.eye(4, dtype=np.float32)
+kf.statePost = np.array([[screen_w // 2], [screen_h // 2], [0], [0]], np.float32)
+
+def smooth(x, y):
+    kf.predict()
+    est = kf.correct(np.array([[x], [y]], np.float32))
+    return int(est[0, 0]), int(est[1, 0])
+
+
 
 
 
@@ -198,10 +207,8 @@ while True:
 
             screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
             #disabled for now
-            #smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
-            #smooth_y = prev_y + (screen_y - prev_y) * (1 - smoothing)
-            #pyautogui.moveTo(smooth_x, smooth_y)
-            #prev_x, prev_y = smooth_x, smooth_y
+        sx, sy = smooth(screen_x, screen_y)
+        pyautogui.moveTo(sx, sy)
 
 
         #ASL KEYBOARD
