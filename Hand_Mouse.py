@@ -4,6 +4,8 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import time
 import pyautogui
+import numpy as np
+
 
 #ASL related values
 ASL = False
@@ -28,9 +30,28 @@ options = vision.HandLandmarkerOptions(
     num_hands=1,
 )
 detector = vision.HandLandmarker.create_from_options(options)
-# smoothening values
-smoothing = 0.3
-prev_x, prev_y = screen_w // 2, screen_h // 2
+#kalman filter
+#turn off manual filter
+pyautogui.PAUSE = 0
+kf = cv2.KalmanFilter(4, 2)
+kf.transitionMatrix = np.array([[1, 0, 1, 0],
+                                [0, 1, 0, 1],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 1]], np.float32)
+kf.measurementMatrix = np.array([[1, 0, 0, 0],
+                                 [0, 1, 0, 0]], np.float32)
+kf.processNoisecov = np.eye(4, dtype=np.float32)
+kf.measurementNoiseCov = np.eye(4, dtype=np.float32)
+
+
+
+
+
+
+
+
+
+
 #range values
 #leftflick range
 click_range = 0
@@ -176,10 +197,11 @@ while True:
                 #break
 
             screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
-            smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
-            smooth_y = prev_y + (screen_y - prev_y) * (1 - smoothing)
-            pyautogui.moveTo(smooth_x, smooth_y)
-            prev_x, prev_y = smooth_x, smooth_y
+            #disabled for now
+            #smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
+            #smooth_y = prev_y + (screen_y - prev_y) * (1 - smoothing)
+            #pyautogui.moveTo(smooth_x, smooth_y)
+            #prev_x, prev_y = smooth_x, smooth_y
 
 
         #ASL KEYBOARD
