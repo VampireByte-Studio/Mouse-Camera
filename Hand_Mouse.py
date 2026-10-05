@@ -9,7 +9,7 @@ import pyautogui
 ASL = False
 #time related values
 click_cd = 0.4
-type_cd = 0.2
+type_cd = 1
 mode_cd = 2
 lastClickTime = 0
 lastModeTime = 0
@@ -194,7 +194,7 @@ while True:
 
             elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10) and distant_y(h12, h9, h, 60):
                 print("B")
-            elif now - lastModeTime > type_cd and contact(h8, h12, click_range, w, h, 10) and contact_x(h4, h8, click_range, w, 10) and distant_y(h4, h8, h, 20):
+            elif now - lastModeTime > type_cd and contact_y(h4, h8, click_range, h, 30) and distant_y(h4, h8, h, 20):
                 print("C")
                 #NOT WORKING
 
