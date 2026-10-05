@@ -4,7 +4,18 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import time
 import pyautogui
+import numpy as np
 
+
+#ASL related values
+ASL = False
+#time related values
+click_cd = 0.4
+type_cd = 1
+mode_cd = 2
+lastClickTime = 0
+lastModeTime = 0
+#general
 screen_w, screen_h = pyautogui.size()
 # webcam
 cap = cv2.VideoCapture(0)
@@ -19,15 +30,43 @@ options = vision.HandLandmarkerOptions(
     num_hands=1,
 )
 detector = vision.HandLandmarker.create_from_options(options)
-# smoothening values
-smoothing = 0.3
-prev_x, prev_y = screen_w // 2, screen_h // 2
+#kalman filter
+#turn off manual filter
+pyautogui.PAUSE = 0
+kf = cv2.KalmanFilter(4, 2)
+kf.transitionMatrix = np.array([[1, 0, 1, 0],
+                                [0, 1, 0, 1],
+                                [0, 0, 1, 0],
+                                [0, 0, 0, 1]], np.float32)
+kf.measurementMatrix = np.array([[1, 0, 0, 0],
+                                 [0, 1, 0, 0]], np.float32)
+kf.processNoiseCov = np.eye(4, dtype=np.float32)
+kf.measurementNoiseCov = np.eye(2, dtype=np.float32)
+kf.errorCovPost        = np.eye(4, dtype=np.float32)
+kf.statePost = np.array([[screen_w // 2], [screen_h // 2], [0], [0]], np.float32)
 
-#middle finger
+def smooth(x, y):
+    kf.predict()
+    est = kf.correct(np.array([[x], [y]], np.float32))
+    return int(est[0, 0]), int(est[1, 0])
+
+
+
+
+
+
+
+
+
+
+
+
+#range values
+#leftflick range
 click_range = 0
 min_click_range = click_range-10
 max_click_range = click_range+10
-# pinky+thumb rightclick
+#rightclick range
 right_click_range = 10
 min_click_range_rc = right_click_range-10
 max_click_range_rc = right_click_range+10
@@ -42,6 +81,8 @@ def draw_landmarks(frame, hand_landmarks):
             color = (0, 255, 0)   #green - index tip
         elif i == 12:
             color = (255, 0, 0)   #blue - middle tip
+        elif i == 16:
+            color = (255, 255, 0)   #blue - middle tip
         elif i == 4 or i == 20:
             color = (0, 255, 255) #yellow - thumb and pinky tip
         else:
@@ -56,6 +97,44 @@ def map_to_screen(norm_x, norm_y, screen_w, screen_h):
     screen_y = int(norm_y * screen_h)
     return screen_x, screen_y
 
+# mapping tip detection
+
+def contact(tipA, tipB, center_range, w, h, tolerance):
+    ax, ay = int(tipA.x * w), int(tipA.y * h)
+    bx, by = int(tipB.x * w), int(tipB.y * h)
+    x_diff = bx - ax
+    y_diff = by - ay
+    min_range = center_range - tolerance
+    max_range = center_range + tolerance
+    return min_range <= x_diff <= max_range and min_range <= y_diff <= max_range
+
+def contact_y(tipA, tipB, center_range, h, tolerance):
+    ay = int(tipA.y * h)
+    by = int(tipB.y * h)
+    y_diff = by - ay
+    min_range = center_range - tolerance
+    max_range = center_range + tolerance
+    return min_range <= y_diff <= max_range
+
+def contact_x(tipA, tipB, center_range, w, tolerance):
+    ax = int(tipA.x * w)
+    bx = int(tipB.x * w)
+    x_diff = bx - ax
+    min_range = center_range - tolerance
+    max_range = center_range + tolerance
+    return min_range <= x_diff <= max_range
+
+def distant_y(tipA, tipB, h, d):
+    ay = int(tipA.y * h)
+    by = int(tipB.y * h)
+    y_diff = by - ay
+    return y_diff > d
+
+def distant_x(tipA, tipB, w, d):
+    ax = int(tipA.x * w)
+    bx = int(tipB.x * w)
+    x_diff = bx - ax
+    return x_diff > d
 
 #main loop
 
@@ -72,51 +151,88 @@ while True:
 
     if result.hand_landmarks:
         hand = result.hand_landmarks[0]
-        # draw_landmarks(frame, hand) # mark all landmarks
+        draw_landmarks(frame, hand)
+        #joint maps
+
+        #finger tip alternatives
         index_tip = hand[8]
         middle_tip = hand[12]
+        ring_tip = hand[16]
         thumb_tip = hand[4]
         pinky_tip = hand[20]
-        #click detect
+
+        #joint general mappings
+        h1 = hand[1]
+        h2 = hand[2]
+        h3 = hand[3]
+        h4 = hand[4]
+        h5 = hand[5]
+        h6 = hand[6]
+        h7 = hand[7]
+        h8 = hand[8]
+        h9 = hand[9]
+        h10 = hand[10]
+        h11 = hand[11]
+        h12 = hand[12]
+        h13 = hand[13]
+        h14 = hand[14]
+        h15 = hand[15]
+        h16 = hand[16]
+        h17 = hand[17]
+        h18 = hand[18]
+        h19 = hand[19]
+        h20 = hand[20]
+
+
         h, w, _ = frame.shape
-        # finger position y
-        iy = int(index_tip.y * h)
-        my = int(middle_tip.y  * h)
-        py = int(pinky_tip.y * h)
-        ty = int(thumb_tip.y * h)
-        y_diff_rc = ty - py
-        y_diff_lc = my - iy
+        # ... your y_diff / x_diff calcs if still needed ...
 
-        # finger position x
-        ix = int(index_tip.x * w)
-        mx = int(middle_tip.x * w)
-        px = int(pinky_tip.x * w)
-        tx = int(thumb_tip.x * w)
-        x_diff_rc = tx - px
-        x_diff_lc = mx - ix
-
-        if min_click_range <= y_diff_lc <= max_click_range:
-            if min_click_range <= x_diff_lc <= max_click_range:
+        # mouse mode
+        if not ASL:
+            now = time.time()
+            if now - lastClickTime > click_cd and contact(index_tip, middle_tip, click_range, w, h, 10):
                 pyautogui.leftClick()
-               #debug print for left click
-                # print("left click detected")
-        elif min_click_range_rc <= y_diff_rc <= max_click_range_rc:
-            if min_click_range_rc <= x_diff_rc <= max_click_range_rc:
+                lastClickTime = now
+                print("Left click detected")
+            elif now - lastClickTime > click_cd and contact(thumb_tip, pinky_tip, right_click_range, w, h, 10):
                 pyautogui.rightClick()
-                # debug print for right click
-                # print("right click detected")
+                lastClickTime = now
+                print("Right click detected")
+            elif now - lastModeTime > mode_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+                ASL = True
+                print("KEYBOARD ON")
+                lastModeTime = now
+            #elif contact(thumb_tip, middle_tip, click_range, w, h, 10):
+                #break
 
-        screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
-        smooth_x = prev_x + (screen_x - prev_x) * (1 - smoothing)
-        smooth_y = prev_y + (screen_y - prev_y) * (1 - smoothing)
+            screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
+            #disabled for now
+        sx, sy = smooth(screen_x, screen_y)
+        pyautogui.moveTo(sx, sy)
 
-        pyautogui.moveTo(smooth_x, smooth_y)
-        prev_x, prev_y = smooth_x, smooth_y 
-        #debug prints
-        # print(screen_x, screen_y)
-        # print("Hand detected:", result.hand_landmarks[0][8])
 
-   # cv2.imshow("Webcam", frame) # turns camera tab on
+        #ASL KEYBOARD
+        if ASL:
+            now = time.time()
+            if now - lastModeTime > mode_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+                ASL = False
+                print("KEYBOARD OFF")
+                lastModeTime = now
+            elif now - lastModeTime > type_cd and contact(h16, h13, click_range, w, h, 30) and contact(h9,h12, click_range, w, h, 30) and contact(h8, h5, click_range, w, h, 30):
+                print ("A")
+
+            elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10) and distant_y(h12, h9, h, 60):
+                print("B")
+            elif now - lastModeTime > type_cd and contact_y(h4, h8, click_range, h, 30) and distant_y(h4, h8, h, 20):
+                print("C")
+                #NOT WORKING
+
+
+    cv2.imshow("Webcam", frame) # turns camera tab on
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 cap.release()
 cv2.destroyAllWindows()
+
