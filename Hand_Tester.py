@@ -148,6 +148,8 @@ def main():
             break
         elif key == 32:                             # SPACE = clear expected
             expected, hits, total = None, 0, 0
+        elif key != 255 and chr(key).isalnum():     # set expected sign
+            expected, hits, total = chr(key).upper(), 0, 0
 
     landmarker.close()
     cap.release()
