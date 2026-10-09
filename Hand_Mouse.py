@@ -50,17 +50,6 @@ def smooth(x, y):
     est = kf.correct(np.array([[x], [y]], np.float32))
     return int(est[0, 0]), int(est[1, 0])
 
-
-
-
-
-
-
-
-
-
-
-
 #range values
 #leftflick range
 click_range = 0
