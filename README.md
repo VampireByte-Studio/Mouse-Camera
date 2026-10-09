@@ -53,7 +53,7 @@ Or install them manually:
 pip install opencv-python mediapipe pyautogui
 
 3. Run the project
-python main.py
+python Hand_Mouse.py
 
 
 Your webcam should open and begin tracking your hand.
