@@ -136,11 +136,7 @@ You may use, copy, modify, and distribute this code for projects that are not in
 
 Commercial use is prohibited without prior written permission from the copyright holder.
 
-If you would like to use this project commercially, please contact the copyright holder for permission.
+If you would like to use this project commercially, please contact VampireByte first.
 
 
-
-Test your changes
-
-Submit a pull request
 
