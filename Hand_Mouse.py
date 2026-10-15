@@ -1,3 +1,5 @@
+import json
+
 import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
@@ -5,16 +7,22 @@ from mediapipe.tasks.python import vision
 import time
 import pyautogui
 import numpy as np
+from collections import Counter, deque
 
 
+K = 5
+UNKNOWN_DIST = 1.0
+SMOOTH_FRAMES = 7
+SAMPLES_FILE = "signs.jsonl"
 #ASL related values
-ASL = False
+ASL = True
 #time related values
 click_cd = 0.4
 type_cd = 1
 mode_cd = 2
 lastClickTime = 0
 lastModeTime = 0
+lastTypeTime = 0
 #general
 screen_w, screen_h = pyautogui.size()
 # webcam
@@ -50,26 +58,20 @@ def smooth(x, y):
     est = kf.correct(np.array([[x], [y]], np.float32))
     return int(est[0, 0]), int(est[1, 0])
 
+def predict(vec, hand, X, labels, hands):
+    """Returns (label or None, nearest distance, vote confidence)."""
+    mask = hands == hand                      # only compare same-handed samples
+    if not mask.any():
+        return None, float("inf"), 0.0
+    dists = np.linalg.norm(X[mask] - vec, axis=1)
+    order = np.argsort(dists)[:K]
+    nearest = dists[order[0]]
+    if nearest > UNKNOWN_DIST:
+        return None, nearest, 0.0
+    votes = Counter(labels[mask][order])
+    best, count = votes.most_common(1)[0]
+    return best, nearest, count / len(order)
 
-
-
-
-
-
-
-
-
-
-
-#range values
-#leftflick range
-click_range = 0
-min_click_range = click_range-10
-max_click_range = click_range+10
-#rightclick range
-right_click_range = 10
-min_click_range_rc = right_click_range-10
-max_click_range_rc = right_click_range+10
 #draw landmarks
 def draw_landmarks(frame, hand_landmarks):
     h, w, _ = frame.shape
@@ -89,7 +91,28 @@ def draw_landmarks(frame, hand_landmarks):
             color = (0, 0, 255)   #red - other landmarks
 
         cv2.circle(frame, (cx, cy), 5, color, -1)
+def normalize(landmarks):
+    # MUST be identical to the recorder's normalize
+    pts = np.array([[lm.x, lm.y, lm.z] for lm in landmarks], dtype=np.float64)
+    pts -= pts[0]
+    scale = np.linalg.norm(pts[9])
+    if scale < 1e-6:
+        return None
+    pts /= scale
+    return pts.flatten()
 
+
+def load_samples(path):
+    X, labels, hands = [], [], []
+    with open(path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                s = json.loads(line)
+                X.append(s["landmarks"])
+                labels.append(s["label"])
+                hands.append(s["hand"])
+    return np.array(X), np.array(labels), np.array(hands)
 #map landmarks
 
 def map_to_screen(norm_x, norm_y, screen_w, screen_h):
@@ -97,135 +120,71 @@ def map_to_screen(norm_x, norm_y, screen_w, screen_h):
     screen_y = int(norm_y * screen_h)
     return screen_x, screen_y
 
-# mapping tip detection
-
-def contact(tipA, tipB, center_range, w, h, tolerance):
-    ax, ay = int(tipA.x * w), int(tipA.y * h)
-    bx, by = int(tipB.x * w), int(tipB.y * h)
-    x_diff = bx - ax
-    y_diff = by - ay
-    min_range = center_range - tolerance
-    max_range = center_range + tolerance
-    return min_range <= x_diff <= max_range and min_range <= y_diff <= max_range
-
-def contact_y(tipA, tipB, center_range, h, tolerance):
-    ay = int(tipA.y * h)
-    by = int(tipB.y * h)
-    y_diff = by - ay
-    min_range = center_range - tolerance
-    max_range = center_range + tolerance
-    return min_range <= y_diff <= max_range
-
-def contact_x(tipA, tipB, center_range, w, tolerance):
-    ax = int(tipA.x * w)
-    bx = int(tipB.x * w)
-    x_diff = bx - ax
-    min_range = center_range - tolerance
-    max_range = center_range + tolerance
-    return min_range <= x_diff <= max_range
-
-def distant_y(tipA, tipB, h, d):
-    ay = int(tipA.y * h)
-    by = int(tipB.y * h)
-    y_diff = by - ay
-    return y_diff > d
-
-def distant_x(tipA, tipB, w, d):
-    ax = int(tipA.x * w)
-    bx = int(tipB.x * w)
-    x_diff = bx - ax
-    return x_diff > d
-
 #main loop
 
 while True:
     success, frame = cap.read()
     if not success:
         break
-
+    X, labels, hands = load_samples(SAMPLES_FILE)
+    recent = deque(maxlen=SMOOTH_FRAMES)
     frame = cv2.flip(frame, 1)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
     timestamp_ms = int(time.time() * 1000)
     result = detector.detect_for_video(mp_image, timestamp_ms)
 
+    hand = result.hand_landmarks[0]
+    handedness = result.handedness[0][0].category_name
+    index_tip = hand[8]
+
+    shown = None
+    vec = normalize(hand)
+    if vec is not None:
+        label, dist, conf = predict(vec, handedness, X, labels, hands)
+        recent.append(label)
+        shown = Counter(recent).most_common(1)[0][0]
+
+
     if result.hand_landmarks:
         hand = result.hand_landmarks[0]
         draw_landmarks(frame, hand)
-        #joint maps
-
-        #finger tip alternatives
-        index_tip = hand[8]
-        middle_tip = hand[12]
-        ring_tip = hand[16]
-        thumb_tip = hand[4]
-        pinky_tip = hand[20]
-
-        #joint general mappings
-        h1 = hand[1]
-        h2 = hand[2]
-        h3 = hand[3]
-        h4 = hand[4]
-        h5 = hand[5]
-        h6 = hand[6]
-        h7 = hand[7]
-        h8 = hand[8]
-        h9 = hand[9]
-        h10 = hand[10]
-        h11 = hand[11]
-        h12 = hand[12]
-        h13 = hand[13]
-        h14 = hand[14]
-        h15 = hand[15]
-        h16 = hand[16]
-        h17 = hand[17]
-        h18 = hand[18]
-        h19 = hand[19]
-        h20 = hand[20]
-
 
         h, w, _ = frame.shape
         # ... your y_diff / x_diff calcs if still needed ...
 
         # mouse mode
+        now = time.time()
+
         if not ASL:
-            now = time.time()
-            if now - lastClickTime > click_cd and contact(index_tip, middle_tip, click_range, w, h, 10):
+            if shown == "1" and now - lastClickTime > click_cd:
                 pyautogui.leftClick()
                 lastClickTime = now
                 print("Left click detected")
-            elif now - lastClickTime > click_cd and contact(thumb_tip, pinky_tip, right_click_range, w, h, 10):
+            elif shown == "2" and now - lastClickTime > click_cd:
                 pyautogui.rightClick()
                 lastClickTime = now
                 print("Right click detected")
-            elif now - lastModeTime > mode_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+            elif shown == "3" and now - lastModeTime > mode_cd:
                 ASL = True
+                lastModeTime = now
                 print("KEYBOARD ON")
-                lastModeTime = now
-            #elif contact(thumb_tip, middle_tip, click_range, w, h, 10):
-                #break
 
+            # cursor movement belongs inside mouse mode
             screen_x, screen_y = map_to_screen(index_tip.x, index_tip.y, screen_w, screen_h)
-            #disabled for now
-        sx, sy = smooth(screen_x, screen_y)
-        pyautogui.moveTo(sx, sy)
+            sx, sy = smooth(screen_x, screen_y)
+            pyautogui.moveTo(sx, sy)
 
-
-        #ASL KEYBOARD
-        if ASL:
-            now = time.time()
-            if now - lastModeTime > mode_cd and contact(thumb_tip, ring_tip, click_range, w, h, 10):
+        else:
+            if shown == "MODE" and now - lastModeTime > mode_cd:
                 ASL = False
-                print("KEYBOARD OFF")
                 lastModeTime = now
-            elif now - lastModeTime > type_cd and contact(h16, h13, click_range, w, h, 30) and contact(h9,h12, click_range, w, h, 30) and contact(h8, h5, click_range, w, h, 30):
-                print ("A")
+                print("KEYBOARD OFF")
+            elif shown is not None and shown.isalpha() and len(shown) == 1 \
+                    and now - lastTypeTime > type_cd:
+                pyautogui.write(shown.lower())
+                lastTypeTime = now
 
-            elif now - lastModeTime > type_cd and contact(h4, h9, click_range, w, h, 10) and contact_y(h8, h16, click_range, h, 10) and distant_y(h12, h9, h, 60):
-                print("B")
-            elif now - lastModeTime > type_cd and contact_y(h4, h8, click_range, h, 30) and distant_y(h4, h8, h, 20):
-                print("C")
-                #NOT WORKING
 
 
     cv2.imshow("Webcam", frame) # turns camera tab on
