@@ -14,8 +14,14 @@ K = 5
 UNKNOWN_DIST = 1.0
 SMOOTH_FRAMES = 7
 SAMPLES_FILE = "signs.jsonl"
-#ASL related values
-ASL = True
+#CONFIG
+#TOGGLE KEYBOARD
+ASL = False
+recent = deque(maxlen=SMOOTH_FRAMES)
+#Toggle camera tab
+camera = True
+#toggle visible landmarks
+DRAWlandmarks = True
 #time related values
 click_cd = 0.4
 type_cd = 1
@@ -113,6 +119,7 @@ def load_samples(path):
                 labels.append(s["label"])
                 hands.append(s["hand"])
     return np.array(X), np.array(labels), np.array(hands)
+X, labels, hands = load_samples(SAMPLES_FILE)
 #map landmarks
 
 def map_to_screen(norm_x, norm_y, screen_w, screen_h):
@@ -126,36 +133,31 @@ while True:
     success, frame = cap.read()
     if not success:
         break
-    X, labels, hands = load_samples(SAMPLES_FILE)
-    recent = deque(maxlen=SMOOTH_FRAMES)
+    shown = None
+    now = time.time()
     frame = cv2.flip(frame, 1)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
     timestamp_ms = int(time.time() * 1000)
     result = detector.detect_for_video(mp_image, timestamp_ms)
 
-    hand = result.hand_landmarks[0]
-    handedness = result.handedness[0][0].category_name
-    index_tip = hand[8]
 
-    shown = None
-    vec = normalize(hand)
-    if vec is not None:
-        label, dist, conf = predict(vec, handedness, X, labels, hands)
-        recent.append(label)
-        shown = Counter(recent).most_common(1)[0][0]
 
 
     if result.hand_landmarks:
         hand = result.hand_landmarks[0]
-        draw_landmarks(frame, hand)
+        handedness = result.handedness[0][0].category_name
+        index_tip = hand[8]
+        if DRAWlandmarks:
+            draw_landmarks(frame, hand)
 
-        h, w, _ = frame.shape
-        # ... your y_diff / x_diff calcs if still needed ...
+        vec = normalize(hand)
+        if vec is not None:
+            label, dist, conf = predict(vec, handedness, X, labels, hands)
+            recent.append(label)
+            shown = Counter(recent).most_common(1)[0][0]
 
         # mouse mode
-        now = time.time()
-
         if not ASL:
             if shown == "1" and now - lastClickTime > click_cd:
                 pyautogui.leftClick()
@@ -165,6 +167,7 @@ while True:
                 pyautogui.rightClick()
                 lastClickTime = now
                 print("Right click detected")
+                #3 NOT TRAINED YET
             elif shown == "3" and now - lastModeTime > mode_cd:
                 ASL = True
                 lastModeTime = now
@@ -185,10 +188,10 @@ while True:
                 pyautogui.write(shown.lower())
                 lastTypeTime = now
 
-
-
-    cv2.imshow("Webcam", frame) # turns camera tab on
-
+    else:
+        recent.clear()
+    if camera:
+        cv2.imshow("Webcam", frame) # turns camera tab on
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
