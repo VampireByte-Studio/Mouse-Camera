@@ -14,8 +14,14 @@ K = 5
 UNKNOWN_DIST = 1.0
 SMOOTH_FRAMES = 7
 SAMPLES_FILE = "signs.jsonl"
-#ASL related values
+#CONFIG
+#TOGGLE KEYBOARD
 ASL = True
+#Toggle camera tab
+camera = True
+#toggle visible landmarks
+DRAWlandmarks = True
+
 #time related values
 click_cd = 0.4
 type_cd = 1
@@ -148,7 +154,8 @@ while True:
 
     if result.hand_landmarks:
         hand = result.hand_landmarks[0]
-        draw_landmarks(frame, hand)
+        if DRAWlandmarks:
+            draw_landmarks(frame, hand)
 
         h, w, _ = frame.shape
         # ... your y_diff / x_diff calcs if still needed ...
@@ -165,6 +172,7 @@ while True:
                 pyautogui.rightClick()
                 lastClickTime = now
                 print("Right click detected")
+                #3 NOT TRAINED YET
             elif shown == "3" and now - lastModeTime > mode_cd:
                 ASL = True
                 lastModeTime = now
@@ -186,9 +194,8 @@ while True:
                 lastTypeTime = now
 
 
-
-    cv2.imshow("Webcam", frame) # turns camera tab on
-
+    if camera:
+        cv2.imshow("Webcam", frame) # turns camera tab on
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
