@@ -138,17 +138,7 @@ Commercial use is prohibited without prior written permission from the copyright
 
 If you would like to use this project commercially, please contact the copyright holder for permission.
 
-##🤝 Contributing
 
-Suggestions, bug fixes, and improvements are welcome.
-
-If you would like to contribute:
-
-Fork the repository
-
-Create a new branch
-
-Make your changes
 
 Test your changes
 
