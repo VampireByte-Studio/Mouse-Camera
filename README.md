@@ -1,10 +1,10 @@
-#🖱️ Camera Mouse
+# 🖱️ Camera Mouse
 
 A Python project that lets you control your computer's mouse using hand gestures detected through a webcam.
 
 Instead of using a physical mouse, the project uses computer vision to track your hand and translate its movements and gestures into mouse actions.
 
-##✨ Features
+## ✨ Features
 
 🖐️ Real-time hand tracking through a webcam
 
@@ -20,7 +20,7 @@ Instead of using a physical mouse, the project uses computer vision to track you
 
 🧠 Uses computer vision to identify hand landmarks
 
-##🛠️ Technologies
+## 🛠️ Technologies
 
 This project is built using:
 
@@ -32,7 +32,7 @@ MediaPipe — hand tracking and landmark detection
 
 PyAutoGUI — controlling the computer mouse
 
-##📋 Requirements
+## 📋 Requirements
 
 Make sure you have Python installed on your computer.
 
@@ -40,25 +40,32 @@ Install the required packages with:
 
 pip install opencv-python mediapipe pyautogui
 
-##🚀 Getting Started
+## 🚀 Getting Started
 1. Clone the repository
 git clone https://github.com/VampireByte-Studio/Mouse-Camera-Project.git
 
 2. Install dependencies
-pip install -r requirements.txt
+opencv
+mediapipe
+pyautogui
 
-
-Or install them manually:
 
 pip install opencv-python mediapipe pyautogui
 
-3. Run the project
-python Hand_Mouse.py
+3. Train project
 
+Hand_Record.py
+
+4. Test project
+
+Hand Tester.py
+
+5. Run program
+   Hand_Mouse.py
 
 Your webcam should open and begin tracking your hand.
 
-##🎮 Controls + 🧠 How It Works
+## 🎮 Controls + 🧠 How It Works
 
 You can modify the gesture detection code to create your own controls.
 
@@ -95,21 +102,7 @@ Mouse Position
 To left click overlap the Middle finger with the Point Finger (GREEN OVER BLUE DOTS)
 and for Right click overlap the Thumb finger over Pinky finger (Yellow OVER YELLOW DOTS)
 
-##📍 Hand Landmarks
-
-MediaPipe provides 21 hand landmarks. Some of the landmarks used by this project include:
-
-4 — Thumb tip
-
-8 — Index finger tip
-
-12 — Middle finger tip
-
-20 — Pinky tip
-
-These landmarks can be used to detect different gestures.
-
-##⚠️ Notes
+## ⚠️ Notes
 
 Because this project relies on a webcam and real-time computer vision, performance can depend on:
 
@@ -125,13 +118,17 @@ Background complexity
 
 Good lighting and a clear view of your hand generally produce better tracking.
 
-##🔒 Privacy
+## 🔒 Privacy
 
 This project processes the webcam feed locally for hand tracking. It does not need to upload your camera footage to an external server.
 
 Make sure you understand and trust any dependencies you install before running the project.
 
-##📄 License
+## TODO
+- ADD MOTION LETTERS
+- CREATE APP CONTROLS
+  
+## 📄 License
 
 This project is intended for personal, educational, and non-profit use only.
 
