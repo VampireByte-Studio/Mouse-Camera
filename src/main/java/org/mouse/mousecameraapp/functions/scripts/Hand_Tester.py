@@ -16,8 +16,8 @@ import mediapipe as mp
 from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python import vision
 
-MODEL_PATH = "hand_landmarker.task"
-SAMPLES_FILE = "signs.jsonl"
+MODEL_PATH = "../../../../../../../../../../PycharmProjects/WelcomeScreen/hand_landmarker.task"
+SAMPLES_FILE = "../../../../../../../../../../PycharmProjects/WelcomeScreen/signs.jsonl"
 K = 5
 UNKNOWN_DIST = 1.0    # nearest sample farther than this -> "?"; tune using the on-screen dist
 SMOOTH_FRAMES = 7     # show the most common result of the last N frames (stops flicker)

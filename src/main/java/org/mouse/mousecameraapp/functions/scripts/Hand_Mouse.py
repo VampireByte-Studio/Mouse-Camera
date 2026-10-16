@@ -13,10 +13,10 @@ from collections import Counter, deque
 K = 5
 UNKNOWN_DIST = 1.0
 SMOOTH_FRAMES = 7
-SAMPLES_FILE = "signs.jsonl"
+SAMPLES_FILE = "../../../../../../../../../../IdeaProjects\Mouse-Camera-App\src\main\resources\org\mouse\mousecameraapp\signs.jsonl"
 #CONFIG
 #TOGGLE KEYBOARD
-ASL = False
+ASL = True
 recent = deque(maxlen=SMOOTH_FRAMES)
 #Toggle camera tab
 camera = True
@@ -37,7 +37,7 @@ if not cap.isOpened():
     raise RuntimeError("No capturing devices found")
 
 # hands
-base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
+base_options = python.BaseOptions(model_asset_path='MODEL_PATH = "../../../../../../../../../../IdeaProjects\Mouse-Camera-App\src\main\resources\org\mouse\mousecameraapp\hand_landmarker.task')
 options = vision.HandLandmarkerOptions(
     base_options=base_options,
     running_mode=vision.RunningMode.VIDEO,
